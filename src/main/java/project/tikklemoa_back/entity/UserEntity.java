@@ -47,7 +47,7 @@ public class UserEntity {
     private List<BoardEntity> boards;
 
     // setting
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL )
     @JsonManagedReference
     private SettingEntity setting;
 
@@ -62,11 +62,11 @@ public class UserEntity {
     private List<CommentEntity> comments;
 
     // Post
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "sender")
     @JsonManagedReference
     private List<PostEntity> sentPosts;
 
-    @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "recipient")
     @JsonManagedReference
     private List<PostEntity> receivedPosts;
 }

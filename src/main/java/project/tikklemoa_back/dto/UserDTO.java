@@ -9,6 +9,7 @@ public class UserDTO {
     // user
     private String nickname;
     private String userid;
+    private String userpw;
     private String img;
     private String badge;
 

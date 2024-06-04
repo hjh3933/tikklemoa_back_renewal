@@ -1,5 +1,6 @@
 package project.tikklemoa_back.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import project.tikklemoa_back.service.S3Service;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -10,14 +11,16 @@ import org.springframework.beans.factory.annotation.Value;
 @RequestMapping("/api/files")
 public class FileController {
 
-    @Value("${aws.s3.bucket-name}")
-    private String bucketName;
-
-    private final S3Service s3Service;
-
-    public FileController(S3Service s3Service) {
-        this.s3Service = s3Service;
-    }
+    // @Value("${aws.s3.bucket-name}")
+    // private String bucketName;
+    //
+    // private final S3Service s3Service;
+    //
+    // public FileController(S3Service s3Service) {
+    //     this.s3Service = s3Service;
+    // }
+    @Autowired
+    private S3Service s3Service;
 
     @GetMapping("")
     public String getPage() {
