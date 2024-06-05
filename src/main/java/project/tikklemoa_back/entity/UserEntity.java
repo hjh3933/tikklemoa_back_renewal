@@ -39,7 +39,7 @@ public class UserEntity {
     // calendar
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private List<CalenderEntity> calenders;
+    private List<CalendarEntity> calenders;
 
     // board
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

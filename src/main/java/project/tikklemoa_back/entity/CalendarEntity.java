@@ -14,7 +14,7 @@ import java.sql.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name="calendar")
-public class CalenderEntity {
+public class CalendarEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", updatable = false)
@@ -33,7 +33,7 @@ public class CalenderEntity {
     @Column(name = "price", nullable = false)
     private int price;
 
-    @Column(name = "details", nullable = false, length = 100)
+    @Column(name = "details", nullable = true, length = 100)
     private String details;
 
     // 외래키 설정

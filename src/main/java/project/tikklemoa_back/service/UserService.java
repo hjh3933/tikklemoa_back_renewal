@@ -9,16 +9,24 @@ import project.tikklemoa_back.entity.SettingEntity;
 import project.tikklemoa_back.entity.UserEntity;
 import project.tikklemoa_back.repository.SettingRepository;
 import project.tikklemoa_back.repository.UserRepository;
+import project.tikklemoa_back.security.TokenProvider;
 
 @Slf4j
 @Service
 public class UserService {
+
+    final private UserRepository userRepository;
+    final private BCryptPasswordEncoder bCryptPasswordEncoder;
+    final private SettingRepository settingRepository;
+
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private SettingRepository settingRepository;
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    public UserService(final UserRepository userRepository
+            , final SettingRepository settingRepository
+            , final BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.userRepository = userRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.settingRepository = settingRepository;
+    }
 
     public UserEntity findByNickname(String nickname) {
         return userRepository.findByNickname(nickname);

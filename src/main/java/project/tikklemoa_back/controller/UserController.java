@@ -18,14 +18,21 @@ import project.tikklemoa_back.service.UserService;
 @RestController
 @RequestMapping("/api-server")
 public class UserController {
+    final private UserService userService;
+    final private BCryptPasswordEncoder bCryptPasswordEncoder;
+    final private TokenProvider tokenProvider;
+    final private S3Service s3Service;;
+
     @Autowired
-    private UserService userService;
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-    @Autowired
-    private TokenProvider tokenProvider;
-    @Autowired
-    private S3Service s3Service;
+    public UserController(final UserService userService
+            , final TokenProvider tokenProvider
+            ,final S3Service s3Service
+            , final BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.userService = userService;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.tokenProvider = tokenProvider;
+        this.s3Service = s3Service;
+    }
 
     // 닉네임 중복검사
     @PostMapping("/auth/checkName")
