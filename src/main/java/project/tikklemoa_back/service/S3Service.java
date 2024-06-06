@@ -26,7 +26,7 @@ public class S3Service {
     // 파일 이름과 현재 시간을 기반으로 고유한 키 생성
     private String generateUniqueKey(String originalFilename) {
         String timestamp = LocalDateTime.now().toString().replace(":", "-");
-        return "profile-img/" + timestamp + "-" + originalFilename;
+        return "tikklemoa_img/" + timestamp + "-" + originalFilename;
     }
 
     // 파일 url을 return

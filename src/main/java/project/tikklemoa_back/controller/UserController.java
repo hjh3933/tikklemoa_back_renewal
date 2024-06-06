@@ -146,13 +146,14 @@ public class UserController {
         try{
             log.warn("patch jwt check {}", userid);
             long id = Long.parseLong(userid);
-            String imgUrl = s3Service.uploadFile(file);
-            UserDTO user = UserDTO.builder()
-                    .nickname(userDTO.getNickname())
-                    .userid(userDTO.getUserid())
-                    .img(imgUrl)
-                    .build();
-            UserEntity updateUser = userService.updateUser(user, id);
+            String imgUrl;
+            if(file != null && !file.isEmpty()) {
+                imgUrl = s3Service.uploadFile(file);
+            } else {
+                imgUrl = null;
+            }
+
+            UserEntity updateUser = userService.updateUser(userDTO, id, imgUrl);
 
             // 응답용
             UserDTO responseUserDTO = UserDTO.builder()

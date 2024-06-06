@@ -9,7 +9,6 @@ import project.tikklemoa_back.entity.SettingEntity;
 import project.tikklemoa_back.entity.UserEntity;
 import project.tikklemoa_back.repository.SettingRepository;
 import project.tikklemoa_back.repository.UserRepository;
-import project.tikklemoa_back.security.TokenProvider;
 
 @Slf4j
 @Service
@@ -69,18 +68,32 @@ public class UserService {
         } else return null;
     }
 
-    public UserEntity updateUser(UserDTO user, long id) {
+    public UserEntity updateUser(UserDTO user, long id, String imgUrl) {
         UserEntity userEntity = userRepository.findById(id)
                 .orElseThrow(()->new RuntimeException("user doesn't exist"));
 
-        UserEntity updateUser = UserEntity.builder()
-                .id(userEntity.getId())
-                .userid(user.getUserid())
-                .nickname(user.getNickname())
-                .img(user.getImg())
-                .badge(userEntity.getBadge())
-                .userpw(userEntity.getUserpw())
-                .build();
+        UserEntity updateUser;
+        if (imgUrl != null) {
+            // img 전달됨
+            updateUser = UserEntity.builder()
+                    .id(userEntity.getId())
+                    .userid(user.getUserid())
+                    .nickname(user.getNickname())
+                    .img(imgUrl)
+                    .badge(userEntity.getBadge())
+                    .userpw(userEntity.getUserpw())
+                    .build();
+        } else {
+            // img 수정 X
+            updateUser = UserEntity.builder()
+                    .id(userEntity.getId())
+                    .userid(user.getUserid())
+                    .nickname(user.getNickname())
+                    .img(userEntity.getImg())
+                    .badge(userEntity.getBadge())
+                    .userpw(userEntity.getUserpw())
+                    .build();
+        }
 
         return userRepository.save(updateUser);
     }
