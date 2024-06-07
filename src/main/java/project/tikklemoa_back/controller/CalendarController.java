@@ -99,7 +99,6 @@ public class CalendarController {
                     .details(calendar.getDetails())
                     .build();
 
-
             return ResponseEntity.ok().body(calendarDTO);
         } catch (Exception e) {
             return ResponseEntity

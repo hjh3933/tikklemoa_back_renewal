@@ -12,7 +12,10 @@ import project.tikklemoa_back.repository.SettingRepository;
 import project.tikklemoa_back.repository.UserRepository;
 
 import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,9 +42,17 @@ public class CalendarService {
                 .orElseThrow(()->new RuntimeException("user doesn't exist"));
 
         // dto -> entity
-        // calendarDTO.getDate()가 yyyy-MM-dd 중요!!
+        // calendarDTO.getDate()가 yyyy-MM-dd hh:mm:ss 중요!!
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        java.util.Date utilDate;
+        try {
+            utilDate = formatter.parse(calendarDTO.getDate());
+        } catch (ParseException e) {
+            throw new RuntimeException("Invalid date format", e);
+        }
+
         CalendarEntity calendar = CalendarEntity.builder()
-                .date(Date.valueOf(calendarDTO.getDate()))
+                .date(utilDate)
                 .category(CalendarEntity.Category.valueOf(calendarDTO.getCategory()))
                 .subcategory(calendarDTO.getSubcategory())
                 .price(calendarDTO.getPrice())
@@ -55,11 +66,13 @@ public class CalendarService {
 
     public ArrayList<MonthCalendarDTO> getMonth(String dateStr, long id) {
         // yyyy-mm을 분리함
-        String[] parts = dateStr.split("-");
-        int year = Integer.parseInt(parts[0]);
-        int month = Integer.parseInt(parts[1]);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
 
-        List<Object[]> results = calendarRepository.findByYearAndMonthAndUserIdGroupedByDate(year, month, id);
+        YearMonth yearMonth = YearMonth.parse(dateStr, formatter);
+        String startOfMonth = yearMonth.atDay(1).atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String endOfMonth = yearMonth.atEndOfMonth().atTime(23, 59, 59).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        List<Object[]> results = calendarRepository.findByYearAndMonthAndUserIdGroupedByDate(startOfMonth, endOfMonth, id);
         ArrayList<MonthCalendarDTO> dtos = new ArrayList<>();
 
         for (Object[] result : results) {
@@ -82,8 +95,14 @@ public class CalendarService {
     }
 
     public ArrayList<CalendarDTO> getDate(String dateStr, long id) {
-        //dateStr = yyyy-mm-dd 이므로 바로 넣음
-        List<CalendarEntity> calendarEntities = calendarRepository.findByDateAndUserId(dateStr, id);
+        //dateStr = yyyy-mm-dd 이므로
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        LocalDate localDate = LocalDate.parse(dateStr, formatter);
+        String startOfDay = localDate.atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String endOfDay = localDate.atTime(23, 59, 59).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        List<CalendarEntity> calendarEntities = calendarRepository.findByDateAndUserId(startOfDay, endOfDay, id);
         ArrayList<CalendarDTO> dtos = new ArrayList<>();
 
         for (CalendarEntity entity : calendarEntities) {
@@ -100,14 +119,14 @@ public class CalendarService {
         return dtos;
     }
 
-    public CalendarEntity getDetail(long dateStr, long id) {
+    public CalendarEntity getDetail(long calendarid, long id) {
 
-        return calendarRepository.findByIdAndUserid(dateStr, id);
+        return calendarRepository.findByIdAndUserid(calendarid, id);
     }
 
-    public CalendarEntity deleteCalendar(long dateStr, long id) {
+    public CalendarEntity deleteCalendar(long calendarid, long id) {
         // 로그인 회원 + id 와 일치하는 튜플 있는지 검사
-        CalendarEntity deleteThing = getDetail(dateStr, id);
+        CalendarEntity deleteThing = getDetail(calendarid, id);
         if(deleteThing != null) {
             // 삭제 작업
             calendarRepository.delete(deleteThing);
@@ -167,8 +186,13 @@ public class CalendarService {
     }
 
     public ArrayList<CalenderStatsDTO> getMonthTotal(String dateStr, long id) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
 
-        List<Object[]> results = calendarRepository.findMonthlyStats(dateStr, id);
+        YearMonth yearMonth = YearMonth.parse(dateStr, formatter);
+        String startOfMonth = yearMonth.atDay(1).atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String endOfMonth = yearMonth.atEndOfMonth().atTime(23, 59, 59).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        List<Object[]> results = calendarRepository.findMonthlyStats(startOfMonth,endOfMonth, id);
         ArrayList<CalenderStatsDTO> dtos = new ArrayList<>();
 
         for (Object[] result : results) {
@@ -191,9 +215,16 @@ public class CalendarService {
     public NextBadgeDTO getNextBadge(long id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(()->new RuntimeException("user doesn't exist"));
+        // 이번년도 이번달
         String dateStr = getCurrentYearMonth();
 
-        List<Object[]> results = calendarRepository.findTotalMinusAndPlus(id, dateStr);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+
+        YearMonth yearMonth = YearMonth.parse(dateStr, formatter);
+        String startOfMonth = yearMonth.atDay(1).atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String endOfMonth = yearMonth.atEndOfMonth().atTime(23, 59, 59).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        List<Object[]> results = calendarRepository.findTotalMinusAndPlus(id, startOfMonth, endOfMonth);
         if (results.isEmpty() || results.get(0) == null) {
             return NextBadgeDTO.builder()
                     .nextBadge("No Badge")
@@ -223,14 +254,20 @@ public class CalendarService {
         return LocalDate.now().format(formatter);
     }
     
-    // badge 를 기준에 따라 부여하는 함수(변경 필요)
+    // badge 를 기준에 따라 부여하는 함수 수입 대비 지출이 1:1이면 100, 커질 수록 수입 대비 지출량이 늘어난 것을 말함
     private String determineNextBadge(double stats) {
-        if (stats < 50) {
+        if (stats > 0 && stats < 50) {
+            // 수입의 절반 이하 금액을 소비함
             return "One";
         } else if (stats < 75) {
             return "Two";
-        } else {
+        } else if (stats < 100) {
             return "Three";
+        }  else if (stats < 150) {
+            return "Four";
+        }  else {
+            // 수입이 0이거나 수입의 1.5배 이상의 금액을 소비함
+            return "Five";
         }
     }
 }

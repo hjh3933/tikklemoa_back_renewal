@@ -15,6 +15,8 @@ import project.tikklemoa_back.repository.LikesRepository;
 import project.tikklemoa_back.repository.UserRepository;
 
 import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,9 +51,18 @@ public class BoardService {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(()->new RuntimeException("user doesn't exist"));
 
+        // yyyy-mm-dd hh:mm:ss front에서 전송 -> 문자열을 java.util.Date로 변환
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        java.util.Date utilDate;
+        try {
+            utilDate = formatter.parse(boardDTO.getDate());
+        } catch (ParseException e) {
+            throw new RuntimeException("Invalid date format", e);
+        }
+
         BoardEntity board = BoardEntity.builder()
                 .title(boardDTO.getTitle())
-                .date(Date.valueOf(boardDTO.getDate())) // yyyy-mm-dd hh:mm:ss front에서 전송
+                .date(utilDate)
                 .content(boardDTO.getContent())
                 .img(imgUrls)
                 .user(user)
@@ -184,11 +195,14 @@ public class BoardService {
             LikesEntity likes = likesRepository.findByBoardidAndUserid(boardid, id);
 
             List<String> imgUrls = null;
-            try {
-                imgUrls = objectMapper.readValue((String) data[4], new TypeReference<List<String>>() {});
-            } catch (Exception e) {
-                e.printStackTrace();
+            if(data[4] != null) {
+                try {
+                    imgUrls = objectMapper.readValue((String) data[4], new TypeReference<List<String>>() {});
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
+
 
             // DTO 만들기
             BoardDetailDTO boardDetail = BoardDetailDTO.builder()
@@ -239,6 +253,114 @@ public class BoardService {
             return new ArrayList<>();
         }
 
+    }
+
+    public ArrayList<BoardDTO> getAllBoards() {
+        Optional<List<Object[]>> results = boardRepository.findBoardAllAuthor();
+
+        if (results.isPresent()) {
+            List<Object[]> data = results.get();
+            ArrayList<BoardDTO> Boards = new ArrayList<>();
+
+            // b.id, b.title, b.date, u.id, u.nickname, u.badge
+            for (Object[] row : data) {
+                BoardDTO boardDTO = BoardDTO.builder()
+                        .id(Long.parseLong(String.valueOf(row[0])))
+                        .title(String.valueOf(row[1]))
+                        .date(String.valueOf(row[2]))
+                        .userid(Long.parseLong(String.valueOf(row[3])))
+                        .nickname(String.valueOf(row[4]))
+                        .badge(String.valueOf(row[5]))
+                        .build();
+
+                Boards.add(boardDTO);
+            }
+
+            return Boards;
+        } else {
+            return new ArrayList<>();
+        }
+
+    }
+
+    public ArrayList<BoardDTO> getMyBoards(String type, long id) {
+        Optional<List<Object[]>> results = null;
+
+        if (type.equals("insert")) {
+            // 내가 작성한 게시글
+            results = boardRepository.findByUserid(id);
+        } else if (type.equals("likes")) {
+            // 내가 좋아요 한 게시글
+            results = boardRepository.findByLikes(id);
+        } else if (type.equals("comment")) {
+            // 내가 댓글 단 게시글
+            results = boardRepository.findByComment(id);
+        } else {
+            throw new RuntimeException("type error: PathVariable wrong error");
+        }
+
+
+        // results 처리
+        if (results.isPresent()) {
+            List<Object[]> data = results.get();
+            ArrayList<BoardDTO> Boards = new ArrayList<>();
+
+            // b.id, b.title, b.date, u.id, u.nickname, u.badge
+            for (Object[] row : data) {
+                BoardDTO boardDTO = BoardDTO.builder()
+                        .id(Long.parseLong(String.valueOf(row[0])))
+                        .title(String.valueOf(row[1]))
+                        .date(String.valueOf(row[2]))
+                        .userid(Long.parseLong(String.valueOf(row[3])))
+                        .nickname(String.valueOf(row[4]))
+                        .badge(String.valueOf(row[5]))
+                        .build();
+
+                Boards.add(boardDTO);
+            }
+
+            return Boards;
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
+    public ArrayList<BoardDTO> getSearchBoards(String type, String searchText) {
+        Optional<List<Object[]>> results = null;
+
+        if (type.equals("content")) {
+            // 제목, 내용 검색
+            results = boardRepository.findByContent(searchText);
+        } else if (type.equals("author")) {
+            // 작성자 명
+            results = boardRepository.findByAuthor(searchText);
+        } else {
+            throw new RuntimeException("type error: RequestParam wrong error");
+        }
+
+        // results 처리
+        if (results.isPresent()) {
+            List<Object[]> data = results.get();
+            ArrayList<BoardDTO> Boards = new ArrayList<>();
+
+            // b.id, b.title, b.date, u.id, u.nickname, u.badge
+            for (Object[] row : data) {
+                BoardDTO boardDTO = BoardDTO.builder()
+                        .id(Long.parseLong(String.valueOf(row[0])))
+                        .title(String.valueOf(row[1]))
+                        .date(String.valueOf(row[2]))
+                        .userid(Long.parseLong(String.valueOf(row[3])))
+                        .nickname(String.valueOf(row[4]))
+                        .badge(String.valueOf(row[5]))
+                        .build();
+
+                Boards.add(boardDTO);
+            }
+
+            return Boards;
+        } else {
+            return new ArrayList<>();
+        }
     }
 
 }

@@ -37,14 +37,19 @@ public class BoardController {
             , @AuthenticationPrincipal String userid) {
         try {
             long id = Long.parseLong(userid);
-
-            ArrayList<String> imgUrls = new ArrayList<>();
-            for (MultipartFile file : files) {
-                String imgUrl = s3Service.uploadFile(file);
-                imgUrls.add(imgUrl);
-            }
+            String imgUrlsJson;
             ObjectMapper objectMapper = new ObjectMapper();
-            String imgUrlsJson = objectMapper.writeValueAsString(imgUrls);
+
+            if (files != null && files.length > 0 && !files[0].isEmpty()) {
+                ArrayList<String> imgUrls = new ArrayList<>();
+                for (MultipartFile file : files) {
+                    String imgUrl = s3Service.uploadFile(file);
+                    imgUrls.add(imgUrl);
+                }
+                imgUrlsJson = objectMapper.writeValueAsString(imgUrls); // 새로운 이미지 URL로 갱신
+            } else {
+                imgUrlsJson = null;
+            }
 
             BoardEntity createdBoard = boardService.createBoard(boardDTO, imgUrlsJson, id);
 
@@ -226,6 +231,66 @@ public class BoardController {
                     .badRequest()
                     .body(e.getMessage());
         }
+    }
+
+    // 게시글 목록 조회 /auth/getAllBoards
+    @GetMapping("/auth/getAllBoards")
+    public ResponseEntity<?> getAllBoards() {
+        try {
+            ArrayList<BoardDTO> boards = boardService.getAllBoards();
+            // ArrayList<BoardDTO> pageBoards;
+            //
+            // // 페이지당 게시물 수
+            // int pageSize = 10;
+            // int startIndex = (page - 1) * pageSize;
+            // int endIndex = Math.min(startIndex + pageSize, boards.size());
+            //
+            // // 페이지 범위가 유효한지 확인
+            // if (startIndex < boards.size()) {
+            //     pageBoards = new ArrayList<>(boards.subList(startIndex, endIndex));
+            // } else {
+            //     pageBoards = new ArrayList<>(); // 빈 리스트 반환
+            // }
+
+            return ResponseEntity.ok().body(boards);
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+        }
+    }
+
+    // 로그인 회원 관련 게시글 조회
+    @GetMapping("/getMyBoards/{type}")
+    public ResponseEntity<?> getMyBoards(@PathVariable String type, @AuthenticationPrincipal String userid) {
+        try {
+            long id = Long.parseLong(userid);
+            ArrayList<BoardDTO> boards = boardService.getMyBoards(type, id);
+
+            return ResponseEntity.ok().body(boards);
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+        }
+    }
+
+    // 검색 - /auth/getSearchBoards?type=type&searchText=searchText
+    @GetMapping("/auth/getSearchBoards")
+    public ResponseEntity<?> getSearchBoards(@RequestParam  String type, @RequestParam  String searchText) {
+        try {
+            ArrayList<BoardDTO> boards = boardService.getSearchBoards(type, searchText);
+
+            return ResponseEntity.ok().body(boards);
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+        }
+
     }
 
 
