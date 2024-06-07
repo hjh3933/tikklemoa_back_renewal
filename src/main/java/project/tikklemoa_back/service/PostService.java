@@ -16,10 +16,7 @@ import project.tikklemoa_back.repository.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -53,7 +50,7 @@ public class PostService {
 
         // yyyy-mm-dd hh:mm:ss front에서 전송 -> 문자열을 java.util.Date로 변환
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        java.util.Date utilDate;
+        Date utilDate;
         try {
             utilDate = formatter.parse(postDTO.getDate());
         } catch (ParseException e) {
@@ -114,12 +111,15 @@ public class PostService {
 
     //
     public PostDTO getPostDetail(long postid, long id) {
-        // 내가 수신자고, isRead가 false면 true로 업데이트
         PostEntity clickPost = postRepository.findById(postid)
                 .orElseThrow(()->new RuntimeException("post doesn't exist"));
 
         // 상세보기 누른 post의 수신자id가 로그인 id(나) 이고 isRead가 false일 때
         if(clickPost.getRecipient().getId() == id && !clickPost.isRead()) {
+            if(clickPost.isRecipientDel()) {
+                // 수신자 삭제 상태임
+                return null;
+            }
             // isRead 만 false -> true로 변경
             PostEntity postEntity = PostEntity.builder()
                     .id(clickPost.getId())
@@ -134,6 +134,14 @@ public class PostService {
                     .recipient(clickPost.getRecipient())
                     .build();
             postRepository.save(postEntity);
+        } else if (clickPost.getSender().getId() == id) {
+            if(clickPost.isSenderDel()) {
+                // 발신자 삭제 상태임
+                return null;
+            }
+        } else {
+            // 수신자도 발신자도 아님
+            new RuntimeException("해당 post 조회가 불가능한 user 입니다");
         }
 
         // 이후 post 테이블의 내용과 작성자 가져오기
@@ -170,5 +178,55 @@ public class PostService {
             return null;
         }
 
+    }
+
+    public PostEntity removePost(PostDTO postDTO, long id) {
+        PostEntity post = postRepository.findById(postDTO.getId())
+                .orElseThrow(()->new RuntimeException("post doesn't exist"));
+        PostEntity removePost = null;
+        if(post.getSender().getId()==id) {
+            // 내가 발신자임
+            removePost = PostEntity.builder()
+                    .id(post.getId())
+                    .title(post.getTitle())
+                    .date(post.getDate())
+                    .content(post.getContent())
+                    .img(post.getImg())
+                    .isRead(post.isRead())
+                    .senderDel(true)
+                    .recipientDel(post.isRecipientDel())
+                    .sender(post.getSender())
+                    .recipient(post.getRecipient())
+                    .build();
+        } else if (post.getRecipient().getId()==id) {
+            // 내가 수신자임
+            removePost = PostEntity.builder()
+                    .id(post.getId())
+                    .title(post.getTitle())
+                    .date(post.getDate())
+                    .content(post.getContent())
+                    .img(post.getImg())
+                    .isRead(post.isRead())
+                    .senderDel(post.isSenderDel())
+                    .recipientDel(true)
+                    .sender(post.getSender())
+                    .recipient(post.getRecipient())
+                    .build();
+        } else {
+            new RuntimeException("post 삭제 권한이 없는 user입니다");
+        }
+        return postRepository.save(removePost);
+    }
+
+    public PostEntity deletePost(PostDTO postDTO, long id) {
+        PostEntity post = postRepository.findById(postDTO.getId())
+                .orElseThrow(()->new RuntimeException("post doesn't exist"));
+        if(post.getSender().getId()==id && !post.isRead()) {
+            // 로그인 계정이 작성자 계정과 일치하고, 읽지 않음 상태일 경우
+            postRepository.delete(post);
+            return post; // 삭제한 요소 전달
+        } else {
+            return null;
+        }
     }
 }

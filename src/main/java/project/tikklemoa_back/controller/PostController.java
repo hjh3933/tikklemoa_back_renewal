@@ -94,7 +94,66 @@ public class PostController {
             long postid = Long.parseLong(postId);
             PostDTO postDetail = postService.getPostDetail(postid, id);
 
+            if(postDetail == null) {
+                return ResponseEntity.ok().body("존재하지 않는 post입니다");
+            }
+
             return ResponseEntity.ok().body(postDetail);
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/removePost")
+    public ResponseEntity<?> removePost(@RequestBody PostDTO postDTO, @AuthenticationPrincipal String userid) {
+        try {
+            long id = Long.parseLong(userid);
+            PostEntity postDetail = postService.removePost(postDTO, id);
+            PostDTO responsePostDTO;
+            if(postDetail != null) {
+                responsePostDTO = PostDTO.builder()
+                        .result(true)
+                        .msg("쪽지 삭제가 완료되었습니다")
+                        .build();
+            } else {
+                responsePostDTO = PostDTO.builder()
+                        .result(false)
+                        .msg("존재하지 않는 쪽지입니다")
+                        .build();
+            }
+
+            return ResponseEntity.ok().body(responsePostDTO);
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+        }
+    }
+
+    // 쪽지 삭제(전송취소)
+    @DeleteMapping("/deletePost")
+    public ResponseEntity<?> deletePost(@RequestBody PostDTO postDTO, @AuthenticationPrincipal String userid) {
+        try {
+            long id = Long.parseLong(userid);
+            PostEntity postDetail = postService.deletePost(postDTO, id);
+            PostDTO responsePostDTO;
+            if(postDetail != null) {
+                responsePostDTO = PostDTO.builder()
+                        .result(true)
+                        .msg("전송 취소가 완료되었습니다")
+                        .build();
+            } else {
+                responsePostDTO = PostDTO.builder()
+                        .result(false)
+                        .msg("전송 취소가 불가능한 쪽지입니다")
+                        .build();
+            }
+
+            return ResponseEntity.ok().body(responsePostDTO);
 
         } catch (Exception e) {
             return ResponseEntity
