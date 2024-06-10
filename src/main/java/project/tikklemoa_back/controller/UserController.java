@@ -120,9 +120,10 @@ public class UserController {
     public ResponseEntity<?> loginUser(@RequestBody UserDTO userDTO) {
         UserEntity user = userService.getByCredentials(userDTO.getUserid(), userDTO.getUserpw());
 
+        UserDTO responseUserDTO;
         if(user != null) {
             String token = tokenProvider.create(user);
-            final UserDTO responseUserDTO = UserDTO.builder()
+             responseUserDTO = UserDTO.builder()
                     .nickname(user.getNickname())
                     .userid(user.getUserid())
                     .img(user.getImg())
@@ -134,9 +135,12 @@ public class UserController {
 
             return ResponseEntity.ok().body(responseUserDTO);
         } else {
+            responseUserDTO = UserDTO.builder()
+                    .result(false)
+                    .msg("아이디 또는 비밀번호가 일치하지 않습니다")
+                    .build();
             return ResponseEntity
-                    .badRequest()
-                    .body("login failed");
+                    .ok().body(responseUserDTO);
         }
     }
 
