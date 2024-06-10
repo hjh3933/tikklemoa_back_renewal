@@ -146,7 +146,7 @@ public class UserController {
 
     // 회원정보 수정
     @PatchMapping("/updateUser")
-    public ResponseEntity<?> updateUser(@RequestPart(value = "file") MultipartFile file, @RequestPart(value = "dto") UserDTO userDTO, @AuthenticationPrincipal String userid) {
+    public ResponseEntity<?> updateUser(@RequestPart(value = "file", required = false) MultipartFile file, @RequestPart(value = "dto") UserDTO userDTO, @AuthenticationPrincipal String userid) {
         try{
             log.warn("patch jwt check {}", userid);
             long id = Long.parseLong(userid);
