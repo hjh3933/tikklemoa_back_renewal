@@ -149,6 +149,8 @@ public class CalendarController {
                     .subcategory(calendarEntity.getSubcategory())
                     .price(calendarEntity.getPrice())
                     .details(calendarEntity.getDetails())
+                    .result(true)
+                    .msg("내역 수정이 완료되었습니다")
                     .build();
 
             return ResponseEntity.ok().body(updateCalender);

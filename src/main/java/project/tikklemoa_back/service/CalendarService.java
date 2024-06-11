@@ -140,9 +140,16 @@ public class CalendarService {
     public CalendarEntity updateCalendar(CalendarDTO calendar, long id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(()->new RuntimeException("user doesn't exist"));
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        java.util.Date utilDate;
+        try {
+            utilDate = formatter.parse(calendar.getDate());
+        } catch (ParseException e) {
+            throw new RuntimeException("Invalid date format", e);
+        }
         CalendarEntity updateThing = CalendarEntity.builder()
                 .id(calendar.getId())
-                .date(Date.valueOf(calendar.getDate()))
+                .date(utilDate)
                 .category(CalendarEntity.Category.valueOf(calendar.getCategory()))
                 .subcategory(calendar.getSubcategory())
                 .price(calendar.getPrice())
