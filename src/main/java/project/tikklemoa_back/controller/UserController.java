@@ -97,7 +97,7 @@ public class UserController {
                     // front 의 public 에 저장된 이미지로 변경
                     .img("default.img")
                     // front 의 public 에 저장된 이미지로 변경, 일단 이름만
-                    .badge("one")
+                    .badge("One")
                     .build();
 
             UserEntity registeredUser = userService.insertUser(user);
