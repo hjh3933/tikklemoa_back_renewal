@@ -47,7 +47,7 @@ public interface BoardRepository extends JpaRepository<BoardEntity, Long> {
 
     @Query(value = "SELECT b.id, b.title, b.date, u.id AS user_id, u.nickname, u.badge " +
             "FROM board b JOIN user u ON b.userid = u.id " +
-            "WHERE b.title LIKE %:searchText% OR b.content LIKE %:searchText%" +
+            "WHERE b.title LIKE %:searchText% OR b.content LIKE %:searchText% " +
             "ORDER BY b.date DESC", nativeQuery = true)
     Optional<List<Object[]>> findByContent(@Param("searchText") String searchText);
 

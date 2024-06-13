@@ -283,6 +283,10 @@ public class BoardService {
 
     }
 
+    public int getLikes(long boardid) {
+        return likesRepository.countByBoardId(boardid);
+    }
+
     public ArrayList<BoardDTO> getMyBoards(String type, long id) {
         Optional<List<Object[]>> results = null;
 

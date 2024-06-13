@@ -14,6 +14,7 @@ import project.tikklemoa_back.service.BoardService;
 import project.tikklemoa_back.service.S3Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -66,28 +67,28 @@ public class BoardController {
                     .body(e.getMessage());
         }
     }
-    
-    // 게시글 수정
+
     @PatchMapping("/updateBoard")
     public ResponseEntity<?> updateBoard(
-            @RequestPart(value = "files") MultipartFile[] files
-            , @RequestPart(value = "dto")  BoardDTO boardDTO
-            , @AuthenticationPrincipal String userid) {
+            @RequestPart(value = "files", required = false) MultipartFile[] files,
+            @RequestPart(value = "dto") BoardDTO boardDTO,
+            @AuthenticationPrincipal String userid) {
         try {
             long id = Long.parseLong(userid);
-            String imgUrlsJson;
             ObjectMapper objectMapper = new ObjectMapper();
 
+            // 기존 이미지 URL에서 삭제할 URL 제거
+            List<String> finalImgUrls = new ArrayList<>(boardDTO.getImgUrls());
+
+            // 새로 업로드한 파일 처리
             if (files != null && files.length > 0 && !files[0].isEmpty()) {
-                ArrayList<String> imgUrls = new ArrayList<>();
                 for (MultipartFile file : files) {
                     String imgUrl = s3Service.uploadFile(file);
-                    imgUrls.add(imgUrl);
+                    finalImgUrls.add(imgUrl);
                 }
-                imgUrlsJson = objectMapper.writeValueAsString(imgUrls); // 새로운 이미지 URL로 갱신
-            } else {
-                imgUrlsJson = null;
             }
+
+            String imgUrlsJson = objectMapper.writeValueAsString(finalImgUrls);
 
             BoardEntity updateBoard = boardService.updateBoard(boardDTO, imgUrlsJson, id);
 
@@ -108,6 +109,48 @@ public class BoardController {
                     .body(e.getMessage());
         }
     }
+    
+    // 게시글 수정
+    // @PatchMapping("/updateBoard")
+    // public ResponseEntity<?> updateBoard(
+    //         @RequestPart(value = "files") MultipartFile[] files
+    //         , @RequestPart(value = "dto")  BoardDTO boardDTO
+    //         , @AuthenticationPrincipal String userid) {
+    //     try {
+    //         long id = Long.parseLong(userid);
+    //         String imgUrlsJson;
+    //         ObjectMapper objectMapper = new ObjectMapper();
+    //
+    //         if (files != null && files.length > 0 && !files[0].isEmpty()) {
+    //             ArrayList<String> imgUrls = new ArrayList<>();
+    //             for (MultipartFile file : files) {
+    //                 String imgUrl = s3Service.uploadFile(file);
+    //                 imgUrls.add(imgUrl);
+    //             }
+    //             imgUrlsJson = objectMapper.writeValueAsString(imgUrls); // 새로운 이미지 URL로 갱신
+    //         } else {
+    //             imgUrlsJson = null;
+    //         }
+    //
+    //         BoardEntity updateBoard = boardService.updateBoard(boardDTO, imgUrlsJson, id);
+    //
+    //         // 응답용
+    //         BoardDTO responseBoardDTO = BoardDTO.builder()
+    //                 .title(updateBoard.getTitle())
+    //                 .date(String.valueOf(updateBoard.getDate()))
+    //                 .content(updateBoard.getContent())
+    //                 .img(updateBoard.getImg())
+    //                 .result(true)
+    //                 .msg("게시글 수정이 완료되었습니다")
+    //                 .build();
+    //
+    //         return ResponseEntity.ok().body(responseBoardDTO);
+    //     } catch (Exception e) {
+    //         return ResponseEntity
+    //                 .badRequest()
+    //                 .body(e.getMessage());
+    //     }
+    // }
 
     // 게시글 삭제
     @DeleteMapping("/deleteBoard")
@@ -238,21 +281,24 @@ public class BoardController {
     public ResponseEntity<?> getAllBoards() {
         try {
             ArrayList<BoardDTO> boards = boardService.getAllBoards();
-            // ArrayList<BoardDTO> pageBoards;
-            //
-            // // 페이지당 게시물 수
-            // int pageSize = 10;
-            // int startIndex = (page - 1) * pageSize;
-            // int endIndex = Math.min(startIndex + pageSize, boards.size());
-            //
-            // // 페이지 범위가 유효한지 확인
-            // if (startIndex < boards.size()) {
-            //     pageBoards = new ArrayList<>(boards.subList(startIndex, endIndex));
-            // } else {
-            //     pageBoards = new ArrayList<>(); // 빈 리스트 반환
-            // }
 
             return ResponseEntity.ok().body(boards);
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+        }
+    }
+
+    // 게시글 좋아요 조회
+    @GetMapping("/auth/getLikes/{boardId}")
+    public ResponseEntity<?> getLikes(@PathVariable String boardId) {
+        try {
+            long boardid = Long.parseLong(boardId);
+            int likes = boardService.getLikes(boardid);
+
+            return ResponseEntity.ok().body(likes);
 
         } catch (Exception e) {
             return ResponseEntity
