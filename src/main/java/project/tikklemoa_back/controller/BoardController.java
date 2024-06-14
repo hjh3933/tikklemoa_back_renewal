@@ -33,7 +33,7 @@ public class BoardController {
     // 게시글 등록
     @PostMapping("/insertBoard")
     public ResponseEntity<?> insertBoard(
-            @RequestPart(value = "files") MultipartFile[] files
+            @RequestPart(value = "files", required = false) MultipartFile[] files
             , @RequestPart(value = "dto")  BoardDTO boardDTO
             , @AuthenticationPrincipal String userid) {
         try {

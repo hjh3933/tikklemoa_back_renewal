@@ -28,20 +28,20 @@ public interface BoardRepository extends JpaRepository<BoardEntity, Long> {
 
     @Query(value = "SELECT b.id, b.title, b.date, u.id AS user_id, u.nickname, u.badge " +
             "FROM board b JOIN user u ON b.userid = u.id " +
-            "WHERE b.userid = :userid" +
+            "WHERE b.userid = :userid " +
             "ORDER BY b.date DESC", nativeQuery = true)
     Optional<List<Object[]>> findByUserid(@Param("userid") Long userid);
 
     // likes 테이블의 userid 값을 가지는 boardid에 대하여 조인 데이터 출력
     @Query(value = "SELECT b.id, b.title, b.date, u.id AS user_id, u.nickname, u.badge " +
             "FROM board b JOIN user u ON b.userid = u.id " +
-            "WHERE b.id IN (SELECT l.boardid FROM likes l WHERE l.userid = :userid)" +
+            "WHERE b.id IN (SELECT l.boardid FROM likes l WHERE l.userid = :userid) " +
             "ORDER BY b.date DESC", nativeQuery = true)
     Optional<List<Object[]>> findByLikes(@Param("userid") Long userid);
 
     @Query(value = "SELECT b.id, b.title, b.date, u.id AS user_id, u.nickname, u.badge " +
             "FROM board b JOIN user u ON b.userid = u.id " +
-            "WHERE b.id IN (SELECT c.boardid FROM comment c WHERE c.userid = :userid)" +
+            "WHERE b.id IN (SELECT c.boardid FROM comment c WHERE c.userid = :userid) " +
             "ORDER BY b.date DESC", nativeQuery = true)
     Optional<List<Object[]>> findByComment(@Param("userid") Long userid);
 

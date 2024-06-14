@@ -34,7 +34,7 @@ public class PostController {
     // 쪽지 전송
     @PostMapping("/insertPost")
     public ResponseEntity<?> insertPost(
-            @RequestPart(value = "files") MultipartFile[] files
+            @RequestPart(value = "files", required = false) MultipartFile[] files
             , @RequestPart(value = "dto") PostDTO postDTO
             , @AuthenticationPrincipal String userid) {
         try {
