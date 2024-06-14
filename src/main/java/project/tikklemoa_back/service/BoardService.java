@@ -148,8 +148,16 @@ public class BoardService {
         BoardEntity boardEntity = boardRepository.findById(commentDTO.getBoardid())
                 .orElseThrow(()->new RuntimeException("board doesn't exist"));
 
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        java.util.Date utilDate;
+        try {
+            utilDate = formatter.parse(commentDTO.getDate());
+        } catch (ParseException e) {
+            throw new RuntimeException("Invalid date format", e);
+        }
+
         CommentEntity comment = CommentEntity.builder()
-                .date(Date.valueOf(commentDTO.getDate()))
+                .date(utilDate)
                 .content(commentDTO.getContent())
                 .user(userEntity)
                 .board(boardEntity)
