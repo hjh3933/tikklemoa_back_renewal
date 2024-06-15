@@ -171,6 +171,7 @@ public class PostService {
                     .nickname(String.valueOf(data[7]))
                     .userImg(String.valueOf(data[8]))
                     .badge(String.valueOf(data[9]))
+                    .recipient(clickPost.getRecipient().getNickname())
                     .build();
 
             return postDTO;
