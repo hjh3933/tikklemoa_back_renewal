@@ -18,7 +18,7 @@ public class TokenProvider {
     private JwtProperties jwtProperties;
 
     public String create(UserEntity user) {
-        Date expiredDate = Date.from(Instant.now().plus(1, ChronoUnit.HOURS));
+        Date expiredDate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
 
         return Jwts.builder()
                 .signWith(SignatureAlgorithm.HS512, jwtProperties.getSecretKey())
