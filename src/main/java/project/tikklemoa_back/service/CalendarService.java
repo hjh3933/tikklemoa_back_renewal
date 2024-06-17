@@ -219,12 +219,9 @@ public class CalendarService {
         return new ArrayList<>(dtos);
     }
 
-    public NextBadgeDTO getNextBadge(long id) {
+    public NextBadgeDTO getNextBadge(String dateStr, long id) {
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(()->new RuntimeException("user doesn't exist"));
-        // 이번년도 이번달
-        String dateStr = getCurrentYearMonth();
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
 
         YearMonth yearMonth = YearMonth.parse(dateStr, formatter);

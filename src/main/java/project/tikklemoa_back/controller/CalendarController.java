@@ -234,11 +234,11 @@ public class CalendarController {
     }
 
     // 다음 달 badge 예상
-    @GetMapping("/getNextBadge")
-    public ResponseEntity<?> getNextBadge(@AuthenticationPrincipal String userid) {
+    @GetMapping("/getNextBadge/{dateStr}")
+    public ResponseEntity<?> getNextBadge(@PathVariable String dateStr, @AuthenticationPrincipal String userid) {
         try{
             long id = Long.parseLong(userid);
-            NextBadgeDTO nextBadgeDTO = calendarService.getNextBadge(id);
+            NextBadgeDTO nextBadgeDTO = calendarService.getNextBadge(dateStr, id);
 
             return ResponseEntity.ok().body(nextBadgeDTO);
         } catch (Exception e) {

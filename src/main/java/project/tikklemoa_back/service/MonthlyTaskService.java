@@ -95,4 +95,9 @@ public class MonthlyTaskService {
             return "Five";
         }
     }
+    
+    // 테스트용 코드
+    public void testPerformMonthlyTask() {
+        performMonthlyTask();
+    }
 }
