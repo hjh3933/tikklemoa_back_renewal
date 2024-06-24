@@ -39,17 +39,18 @@ ERD: https://www.erdcloud.com/d/axGdZkRKyGcyymmim
 
 ## 💻 Getting Started
 
-Installation
-
+### Installation
+```
 npm install
-
-Develop Mode
-
+```
+### Develop Mode
+```
 npm run dev
-
-Production
-
+```
+### Production
+```
 npm start
+```
 
 ## 🔧 Stack
 
