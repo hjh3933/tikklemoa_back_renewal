@@ -83,4 +83,4 @@ https://github.com/hjh3933/tikklemoa_back/assets/107241014/7de51cc8-fb75-4aab-b1
 
 ## 👨‍👩‍👧‍👦 Developer
 
-홍주희 (hjh3933)
+**홍주희** ([hjh3933](https://github.com/hjh3933))
