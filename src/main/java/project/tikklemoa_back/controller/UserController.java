@@ -11,6 +11,7 @@ import project.tikklemoa_back.dto.UserDTO;
 import project.tikklemoa_back.dto.UserPwUpdateDTO;
 import project.tikklemoa_back.entity.UserEntity;
 import project.tikklemoa_back.security.TokenProvider;
+import project.tikklemoa_back.service.LocalFileService;
 import project.tikklemoa_back.service.S3Service;
 import project.tikklemoa_back.service.UserService;
 
@@ -22,16 +23,19 @@ public class UserController {
     final private BCryptPasswordEncoder bCryptPasswordEncoder;
     final private TokenProvider tokenProvider;
     final private S3Service s3Service;;
+    final private LocalFileService localFileService;
 
     @Autowired
     public UserController(final UserService userService
             , final TokenProvider tokenProvider
-            ,final S3Service s3Service
+            , final S3Service s3Service
+            , final LocalFileService localFileService
             , final BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userService = userService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenProvider = tokenProvider;
         this.s3Service = s3Service;
+        this.localFileService = localFileService;
     }
 
     // 닉네임 중복검사
@@ -151,8 +155,17 @@ public class UserController {
             log.warn("patch jwt check {}", userid);
             long id = Long.parseLong(userid);
             String imgUrl;
-            if(file != null && !file.isEmpty()) {
-                imgUrl = s3Service.uploadFile(file);
+
+            // s3Service
+            // if(file != null && !file.isEmpty()) {
+            //     imgUrl = s3Service.uploadFile(file);
+            // } else {
+            //     imgUrl = null;
+            // }
+
+            // 로컬 저장 서비스 사용
+            if (file != null && !file.isEmpty()) {
+                imgUrl = localFileService.saveFile(file);  // <= 로컬 저장 방식
             } else {
                 imgUrl = null;
             }
